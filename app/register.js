@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
 import { Input, InputField, InputIcon, MailIcon, InputSlot, Text, View } from '@gluestack-ui/themed';
 import { Icon, LockIcon, AddIcon, VStack, Image, Button, ButtonText, ButtonIcon } from "@gluestack-ui/themed"
+import { useToast, Toast, ToastDescription, ToastTitle, Pressable, CloseIcon } from '@gluestack-ui/themed';
 import { User } from 'lucide-react-native';
+import { supabase } from '../lib/supabase';
 import logoImage from '../assets/icon.png';
 
 export default function Register() {
@@ -10,6 +12,139 @@ export default function Register() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const toast = useToast();
+
+    async function validate() {
+        if (!name || !email || !password) {
+            toast.show({
+                placement: "top",
+                duration: null,
+                render: ({ id }) => {
+                    const toastId = "toast-" + id;
+                    return (
+                        <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="error">
+                            <VStack space="xs" flex={1} >
+                                <ToastTitle>Whoops...</ToastTitle>
+                                <ToastDescription>
+                                    Email, password, and name cannot be empty!{"\n"}
+                                </ToastDescription>
+                            </VStack>
+                            <Pressable mt="$1" onPress={() => toast.close(id)}>
+                                <Icon as={CloseIcon} color="$black" />
+                            </Pressable>
+                        </Toast>
+                    )
+                }
+            });
+            return;
+        }
+
+        const re_email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!re_email.test(email)) {
+            toast.show({
+                placement: "top",
+                duration: null,
+                render: ({ id }) => {
+                    const toastId = "toast-" + id;
+                    return (
+                        <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="error">
+                            <VStack space="xs" flex={1} >
+                                <ToastTitle>Whoops...</ToastTitle>
+                                <ToastDescription>
+                                    Please provide a valid email address.
+                                </ToastDescription>
+                            </VStack>
+                            <Pressable mt="$1" onPress={() => toast.close(id)}>
+                                <Icon as={CloseIcon} color="$black" />
+                            </Pressable>
+                        </Toast>
+                    )
+                }
+            });
+            return;
+        }
+
+        const re_password = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+        if (password.length <= 8 && !re_password.test(password)) {
+            toast.show({
+                placement: "top",
+                duration: null,
+                render: ({ id }) => {
+                    const toastId = "toast-" + id;
+                    return (
+                        <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="error">
+                            <VStack space="xs" flex={1} >
+                                <ToastTitle>Whoops...</ToastTitle>
+                                <ToastDescription>
+                                    The password must have a special character, uppercase and lowercase alphabets, and a number. It must also be at least 8 characters long.
+                                </ToastDescription>
+                            </VStack>
+                            <Pressable mt="$1" onPress={() => toast.close(id)}>
+                                <Icon as={CloseIcon} color="$black" />
+                            </Pressable>
+                        </Toast>
+                    )
+                }
+            });
+            return;
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    name: name,
+                }
+            }
+        });
+        if (error) {
+            toast.show({
+                placement: "top",
+                duration: null,
+                render: ({ id }) => {
+                    const toastId = "toast-" + id;
+                    return (
+                        <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="error">
+                            <VStack space="xs" flex={1} >
+                                <ToastTitle>Whoops...</ToastTitle>
+                                <ToastDescription>
+                                    { error }.
+                                </ToastDescription>
+                            </VStack>
+                            <Pressable mt="$1" onPress={() => toast.close(id)}>
+                                <Icon as={CloseIcon} color="$black" />
+                            </Pressable>
+                        </Toast>
+                    )
+                }
+            });
+            return;
+        }
+
+        toast.show({
+            placement: "top",
+            duration: null,
+            render: ({ id }) => {
+                const toastId = "toast-" + id;
+                return (
+                    <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="success">
+                        <VStack space="xs" flex={1} >
+                            <ToastTitle>Alright!</ToastTitle>
+                            <ToastDescription>
+                                You have successfully registered! Please login to continue.
+                            </ToastDescription>
+                        </VStack>
+                        <Pressable mt="$1" onPress={() => toast.close(id)}>
+                            <Icon as={CloseIcon} color="$black" />
+                        </Pressable>
+                    </Toast>
+                )
+            }
+        });
+
+        router.replace('/login');
+    }
 
     return (
         <View>
@@ -22,25 +157,25 @@ export default function Register() {
                 </View>
 
                 <Input width={300} marginTop={18}>
-                    <InputField placeholder="Full Name" />
+                    <InputField placeholder="Full Name" onChangeText={setName} />
                     <InputSlot marginHorizontal={12}>
                         <InputIcon>
-                            <Icon as={User} size="md" />
+                            <Icon as={User} />
                         </InputIcon>
                     </InputSlot>
                 </Input>
 
                 <Input width={300}>
-                    <InputField placeholder="Email" />
+                    <InputField placeholder="Email" onChangeText={setEmail} />
                     <InputSlot marginHorizontal={12}>
                         <InputIcon>
-                            <Icon as={MailIcon} size="md" />
+                            <Icon as={MailIcon} />
                         </InputIcon>
                     </InputSlot>
                 </Input>
 
                 <Input width={300}>
-                    <InputField placeholder="Password" type='password' />
+                    <InputField placeholder="Password" type='password' onChangeText={setPassword} />
                     <InputSlot marginHorizontal={12}>
                         <InputIcon>
                             <Icon as={LockIcon} />
@@ -48,11 +183,11 @@ export default function Register() {
                     </InputSlot>
                 </Input>
 
-                <Button size="md" variant="solid" action="primary" marginTop={18} paddingHorizontal={48}>
+                <Button size="md" variant="solid" action="primary" marginTop={18} paddingHorizontal={48} onPress={() => validate()}>
                     <ButtonText>Register</ButtonText>
                 </Button>
 
-                <Link href="/login" style = {{color: '#36a8ff', textDecorationLine: 'underline'}}>Already have an account? Login instead.</Link>
+                <Link href="/login" style={{ color: '#36a8ff', textDecorationLine: 'underline' }}>Already have an account? Login instead.</Link>
             </VStack>
         </View>
     );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
 import { Input, InputField, InputIcon, InputSlot, Text, View, Toast, useToast } from '@gluestack-ui/themed';
 import { Icon, LockIcon, MailIcon, VStack, Image, Button, ButtonText } from "@gluestack-ui/themed"
 import { ToastDescription, ToastTitle, CloseIcon, Pressable } from '@gluestack-ui/themed';
@@ -20,8 +20,8 @@ export default function Login() {
                 render: ({ id }) => {
                     const toastId = "toast-" + id;
                     return (
-                        <Toast nativeID={toastId} variant="accent" action="error">
-                            <VStack space="xs" flex={1}>
+                        <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="error">
+                            <VStack space="xs" flex={1} >
                                 <ToastTitle>Whoops...</ToastTitle>
                                 <ToastDescription>
                                     Your password and email cannot be empty!{"\n"}
@@ -36,7 +36,7 @@ export default function Login() {
                 }
             });
             return;
-        };
+        }
 
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
@@ -50,7 +50,7 @@ export default function Login() {
                 render: ({ id }) => {
                     const toastId = "toast-" + id;
                     return (
-                        <Toast nativeID={toastId} variant="accent" action="error">
+                        <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="error">
                             <VStack space="xs" flex={1}>
                                 <ToastTitle>Whoops...</ToastTitle>
                                 <ToastDescription>
@@ -67,8 +67,27 @@ export default function Login() {
             });
             return;
         }
-
-        router.replace("/")
+        
+        toast.show({
+            placement: "top",
+            render: ({ id }) => {
+                const toastId = "toast-" + id;
+                return (
+                    <Toast width={350} marginTop={36} nativeID={toastId} variant="accent" action="success">
+                        <VStack space="xs" flex={1} >
+                            <ToastTitle>Welcome!</ToastTitle>
+                            <ToastDescription>
+                                Successfully logged in!
+                            </ToastDescription>
+                        </VStack>
+                        <Pressable mt="$1" onPress={() => toast.close(id)}>
+                            <Icon as={CloseIcon} color="$black" />
+                        </Pressable>
+                    </Toast>
+                )
+            }
+        });
+        router.replace("/");
     }
 
     return (
@@ -85,7 +104,7 @@ export default function Login() {
                     <InputField placeholder="Email" onChangeText={setEmail} />
                     <InputSlot marginHorizontal={12}>
                         <InputIcon>
-                            <Icon as={MailIcon} size="md" />
+                            <Icon as={MailIcon}/>
                         </InputIcon>
                     </InputSlot>
                 </Input>
@@ -99,7 +118,7 @@ export default function Login() {
                     </InputSlot>
                 </Input>
 
-                <Button size="md" variant="solid" action="primary" marginTop={18} paddingHorizontal={48} onPress={() => { login() }}>
+                <Button variant="solid" action="primary" marginTop={18} paddingHorizontal={48} onPress={() => { login() }}>
                     <ButtonText>Login </ButtonText>
                 </Button>
 
