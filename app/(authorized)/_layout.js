@@ -7,7 +7,7 @@ export default function Authenticate() {
     useEffect(() => {
         supabase.auth.getUser().then(({ data: { user } }) => {
             if (!user) {
-                console.log("User Found")
+                console.log("User Not Found")
                 router.replace("/login");
             }
         });
