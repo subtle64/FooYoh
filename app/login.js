@@ -1,18 +1,21 @@
 import React, { useState } from 'react'
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import { Link, router } from 'expo-router'
-import { Input, InputField, InputIcon, InputSlot, Text, View, Toast, useToast } from '@gluestack-ui/themed';
+import { Input, InputField, InputIcon, InputSlot, Text, View, Toast, useToast, SelectPortal } from '@gluestack-ui/themed';
 import { Icon, LockIcon, MailIcon, VStack, Image, Button, ButtonText } from "@gluestack-ui/themed"
 import { ToastDescription, ToastTitle, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import { supabase } from '../lib/supabase';
 import logoImage from '../assets/icon.png';
+import { useLoading } from '../components/LoadingContext';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
+    const {loading, setLoading} = useLoading();
     const toast = useToast();
 
     async function login() {
+        setLoading(true);
         if (!email || !password) {
             toast.show({
                 placement: "top",
@@ -35,6 +38,7 @@ export default function Login() {
                     )
                 }
             });
+            setLoading(false);
             return;
         }
 
@@ -43,7 +47,7 @@ export default function Login() {
             password: password,
         });
 
-        if(error) {
+        if (error) {
             toast.show({
                 placement: "top",
                 duration: null,
@@ -65,9 +69,10 @@ export default function Login() {
                     )
                 }
             });
+            setLoading(false);
             return;
         }
-        
+
         toast.show({
             placement: "top",
             render: ({ id }) => {
@@ -87,43 +92,47 @@ export default function Login() {
                 )
             }
         });
-        router.replace("/");
+
+        setLoading(false);
+        router.replace("/home");
     }
 
     return (
-        <View>
-            <VStack space="lg" reversed={false} alignItems='center'>
-                <Image source={logoImage} alt='Logo' marginBottom={18} />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View>
+                <VStack space="lg" reversed={false} alignItems='center'>
+                    <Image source={logoImage} alt='Logo' marginBottom={18} />
 
-                <View>
-                    <Text bold textAlign='center' fontSize={32} padding={0}>Welcome!</Text>
-                    <Text light textAlign='center' fontSize={24} padding={0}>Please login into your account.</Text>
-                </View>
+                    <View>
+                        <Text bold textAlign='center' fontSize={32} padding={0}>Welcome!</Text>
+                        <Text light textAlign='center' fontSize={24} padding={0}>Please login into your account.</Text>
+                    </View>
 
-                <Input width={300} marginTop={18}>
-                    <InputField placeholder="Email" onChangeText={setEmail} />
-                    <InputSlot marginHorizontal={12}>
-                        <InputIcon>
-                            <Icon as={MailIcon}/>
-                        </InputIcon>
-                    </InputSlot>
-                </Input>
+                    <Input width={300} marginTop={18}>
+                        <InputField placeholder="Email" onChangeText={setEmail} />
+                        <InputSlot marginHorizontal={12}>
+                            <InputIcon>
+                                <Icon as={MailIcon} />
+                            </InputIcon>
+                        </InputSlot>
+                    </Input>
 
-                <Input width={300}>
-                    <InputField placeholder="Password" type='password' onChangeText={setPassword} />
-                    <InputSlot marginHorizontal={12}>
-                        <InputIcon>
-                            <Icon as={LockIcon} />
-                        </InputIcon>
-                    </InputSlot>
-                </Input>
+                    <Input width={300}>
+                        <InputField placeholder="Password" type='password' onChangeText={setPassword} />
+                        <InputSlot marginHorizontal={12}>
+                            <InputIcon>
+                                <Icon as={LockIcon} />
+                            </InputIcon>
+                        </InputSlot>
+                    </Input>
 
-                <Button variant="solid" action="primary" marginTop={18} paddingHorizontal={48} onPress={() => { login() }}>
-                    <ButtonText>Login </ButtonText>
-                </Button>
+                    <Button variant="solid" action="primary" marginTop={18} paddingHorizontal={48} onPress={() => { login() }}>
+                        <ButtonText>Login </ButtonText>
+                    </Button>
 
-                <Link href="/register" style={{ color: '#36a8ff', textDecorationLine: 'underline' }}>Don't have an account? Register now!</Link>
-            </VStack>
-        </View>
+                    <Link href="/register" style={{ color: '#36a8ff', textDecorationLine: 'underline' }}>Don't have an account? Register now!</Link>
+                </VStack>
+            </View>
+        </KeyboardAvoidingView>
     );
 }
