@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { Link, router } from 'expo-router'
 import { Input, InputField, InputIcon, InputSlot, Text, View, Toast, useToast, SelectPortal } from '@gluestack-ui/themed';
 import { Icon, LockIcon, MailIcon, VStack, Image, Button, ButtonText } from "@gluestack-ui/themed"
@@ -98,8 +98,8 @@ export default function Login() {
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+            <View flex = {1} justifyContent='center' alignItems='center'>
                 <VStack space="lg" reversed={false} alignItems='center'>
                     <Image source={logoImage} alt='Logo' marginBottom={18} />
 
@@ -136,3 +136,12 @@ export default function Login() {
         </KeyboardAvoidingView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+});

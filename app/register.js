@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, router } from 'expo-router';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { Input, InputField, InputIcon, MailIcon, InputSlot, Text, View, HStack } from '@gluestack-ui/themed';
 import { Icon, LockIcon, AddIcon, VStack, Image, Button, ButtonText, ButtonIcon } from "@gluestack-ui/themed"
 import { useToast, Toast, ToastDescription, ToastTitle, Pressable, CloseIcon } from '@gluestack-ui/themed';
@@ -100,17 +100,16 @@ export default function Register() {
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View>
-                <VStack space="lg" reversed={false} alignItems='center'>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+            <View flex={1} alignItems = {'center'} justifyContent = {'center'}>
+                <VStack space="lg" reversed={false} alignItems='center' justifyContent='center'>
                     <Image source={logoImage} alt='Logo' marginBottom={18} />
-
                     <View>
                         <Text bold textAlign='center' fontSize={32} padding={0}>New Human!</Text>
                         <Text light textAlign='center' fontSize={24} padding={0}>Create a new account.</Text>
                     </View>
 
-                    <View flex={1} flexDirection='row' gap={10} alignItems={"center"} marginTop={18}>
+                    <View flexDirection='row' gap={10} alignItems={"center"} marginTop={18}>
                         <Input width={145}>
                             <InputField placeholder="First Name" onChangeText={setFirstName} />
                             <InputSlot marginHorizontal={12}>
@@ -159,3 +158,12 @@ export default function Register() {
 
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+});

@@ -7,6 +7,7 @@ import { config } from "@gluestack-ui/config"
 import { Slot, router } from "expo-router";
 import { supabase } from '../lib/supabase';
 import { LoadingProvider, useLoading } from '../components/LoadingContext';
+import { UserProvider, useUser } from '../components/UserContext';
 
 export default function RootLayout() {
   return (
@@ -14,7 +15,9 @@ export default function RootLayout() {
       <StatusBar style="auto" />
       <GluestackUIProvider config={config}>
         <LoadingProvider>
+          <UserProvider>
             <RootComponent/>
+          </UserProvider>
         </LoadingProvider>
       </GluestackUIProvider>
     </GestureHandlerRootView>
@@ -48,7 +51,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
