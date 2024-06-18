@@ -86,6 +86,18 @@ export default function Register() {
                 { email: email, first_name: firstName, last_name: lastName, user_id: signUpResult.data.user.id},
             ]);
 
+        const purchaseHeader = await supabase
+            .from('PurchasedHeader')
+            .insert([
+                { user_id: signUpResult.data.user.id},
+            ]);
+        
+        const cartHeader = await supabase
+            .from('CartHeader')
+            .insert([
+                { user_id: signUpResult.data.user.id},
+            ]);
+
         if (insertResults.error) {
             showToast("Whoops...", insertResults.error.message, "error");
             const revertResults = await supabase.auth.admin.deleteUser(signUpResult.data.id);

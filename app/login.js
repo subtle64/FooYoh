@@ -7,8 +7,11 @@ import { ToastDescription, ToastTitle, CloseIcon, Pressable } from '@gluestack-u
 import { supabase } from '../lib/supabase';
 import logoImage from '../assets/icon.png';
 import { useLoading } from '../components/LoadingContext';
+import { useUser, useUserDetails } from '../components/UserContext';
 
 export default function Login() {
+    const {user, setUser} = useUser();
+    const {userDetails, setUserDetails} = useUserDetails();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const {loading, setLoading} = useLoading();
@@ -93,6 +96,10 @@ export default function Login() {
             }
         });
 
+        const { data: { user } } = await supabase.auth.getUser();
+        const result = await supabase.from("Users").select().eq("user_id", user.id);
+        setUser(user);
+        setUserDetails(result.data[0]);
         setLoading(false);
         router.replace("/home");
     }

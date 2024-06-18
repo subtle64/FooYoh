@@ -17,7 +17,7 @@ export default function Tab() {
     const { userDetails, setUserDetails } = useUserDetails();
     const { loading, setLoading } = useLoading();
     const [results, setResults] = useState(null);
-    const [search, setsearch] = useState("");
+    const [search, setSearch] = useState("");
     const [querying, setQuerying] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
     const blurhash = 'GDkKFwJgeoh7mIiHmJh3aGd3iPuX+U8F';
@@ -41,7 +41,7 @@ export default function Tab() {
                     source={getImageURL(image)}
                     placeholder={{ blurhash }}
                     contentFit="contain"
-                    transition={1000}
+                    transition={150}
                 />
                 <Text>{name}</Text>
                 <Text fontWeight={'$bold'}>{price} FYC</Text>
@@ -49,6 +49,17 @@ export default function Tab() {
             </View>
         </Pressable>
     );
+
+    const fetchRecipe = async () => {
+            if (search.length > 0) {
+                const { data, error } = await supabase.from("Recipes").select().ilike('name', "%" + search + "%");
+                setResults(data);
+            } else {
+                const { data, error } = await supabase.from("Recipes").select();
+                setResults(data);
+            }
+            setQuerying(false);
+        }
 
     useEffect(() => {
         setLoading(true);
@@ -78,16 +89,6 @@ export default function Tab() {
         }
         setIsSearching(true);
         setQuerying(true);
-        const fetchRecipe = async () => {
-            if (search.length > 0) {
-                const { data, error } = await supabase.from("Recipes").select().ilike('name', "%" + search + "%");
-                setResults(data);
-            } else {
-                const { data, error } = await supabase.from("Recipes").select();
-                setResults(data);
-            }
-            setQuerying(false);
-        }
         const delay = setTimeout(() => {
             fetchRecipe();
         }, 2000);
@@ -106,7 +107,7 @@ export default function Tab() {
                         <InputSlot pl="$3">
                             <InputIcon as={SearchIcon} />
                         </InputSlot>
-                        <InputField placeholder="Search recipes" onChangeText={setsearch} />
+                        <InputField placeholder="Search recipes" onChangeText={setSearch} />
                     </Input>
                     <View style={styles.recommendations}>
                         <Text fontWeight={'$semibold'}>New Release!</Text>
@@ -178,7 +179,11 @@ export default function Tab() {
                     variant="solid"
                     action="primary"
                     bgColor='#FF6700'
-                    onPress={() => setIsSearching(true)}
+                    onPress={() => {
+                        setIsSearching(true);
+                        if (!results)
+                            fetchRecipe();
+                    }}
                     borderRadius={30}
                 >
                     <ButtonText color='white'>Explore All!</ButtonText>
@@ -206,7 +211,7 @@ export default function Tab() {
                         <InputSlot pl="$3">
                             <InputIcon as={SearchIcon} />
                         </InputSlot>
-                        <InputField placeholder="Search recipes" autoFocus={true} value={search} onChangeText={setsearch} />
+                        <InputField placeholder="Search recipes" autoFocus={true} value={search} onChangeText={setSearch} />
                     </Input>
                 </VStack>
                 {querying ? <SkeletonComponent /> : (!results || results.length == 0) ? <NotFoundComponent /> : <RecipeComponent />}
