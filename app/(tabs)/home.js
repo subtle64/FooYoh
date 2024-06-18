@@ -1,21 +1,59 @@
-import { StyleSheet } from 'react-native';
-import { useEffect, useState, useTransition } from 'react';
-import { Button, View, Text, ButtonText, VStack, Box, Heading, SearchIcon, ScrollView, InputIcon, InputField, InputSlot, HStack } from "@gluestack-ui/themed"
+import { StyleSheet, Pressable } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image } from 'expo-image';
+import { Button, View, Text, ButtonText, VStack, Box, Heading, SearchIcon, FlatList } from "@gluestack-ui/themed"
+import { ScrollView, InputIcon, InputField, InputSlot, HStack, ArrowLeftIcon, ButtonIcon } from "@gluestack-ui/themed"
 import { supabase } from '../../lib/supabase';
+import { AntDesign } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useLoading } from '../../components/LoadingContext';
 import { Input } from '@gluestack-ui/themed';
 import { useUser, useUserDetails } from '../../components/UserContext.js';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 export default function Tab() {
     const { user, setUser } = useUser();
     const { userDetails, setUserDetails } = useUserDetails();
     const { loading, setLoading } = useLoading();
+    const [results, setResults] = useState(null);
+    const [search, setsearch] = useState("");
+    const [querying, setQuerying] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const blurhash = 'GDkKFwJgeoh7mIiHmJh3aGd3iPuX+U8F';
+    const [firstMount, setFirstMount] = useState(true);
+
+
+    function getImageURL(image) {
+        const { data } = supabase
+            .storage
+            .from('Images')
+            .getPublicUrl("Public/" + image);
+
+        return data.publicUrl;
+    }
+
+    const Recipe = ({ name, price, vendor, image, id }) => (
+        <Pressable stlye={{ flex: 1, bgColor: '#fff' }} onPress={() => { router.push("/recipes/" + id) }}>
+            <View bgColor={'#fff'} flex={1} maxWidth={"50%"} borderRadius={4} padding={12} justifyContent='center' textAlign='center'>
+                <Image
+                    style={styles.image}
+                    source={getImageURL(image)}
+                    placeholder={{ blurhash }}
+                    contentFit="contain"
+                    transition={1000}
+                />
+                <Text>{name}</Text>
+                <Text fontWeight={'$bold'}>{price} FYC</Text>
+                <Text fontWeight={'$thin'}>By {vendor}</Text>
+            </View>
+        </Pressable>
+    );
 
     useEffect(() => {
         setLoading(true);
         const fetchSession = async () => {
-            if (!user  || !userDetails) {
+            if (!user || !userDetails) {
                 try {
                     const { data: { user } } = await supabase.auth.getUser();
                     const { data } = await supabase.from("Users").select().eq("user_id", user.id);
@@ -23,48 +61,166 @@ export default function Tab() {
                     setUserDetails(data[0]);
                 } catch (error) {
                     console.error('Error fetching session:', error.message);
-                    // Handle error if needed
                 } finally {
                     setLoading(false);
                 }
             }
+            setLoading(false);
         };
 
         fetchSession();
     }, [setLoading]);
 
-    return (
-        <ScrollView>
-            <VStack space="sm" reversed={false} style={styles.container}>
-                {userDetails && <Heading size="3xl">Hi, {userDetails.first_name}!</Heading>}
-                <Text>What would you like to eat today? (っ'ヮ'c)</Text>
-                <Input width={"100%"} borderColor='#eb5834'>
-                    <InputSlot pl="$3">
-                        <InputIcon as={SearchIcon} />
-                    </InputSlot>
-                    <InputField placeholder="Search recipes" />
-                </Input>
-                <View style={styles.recommendations}>
-                    <Text fontWeight={'$semibold'}>New Release!</Text>
-                    <Box width={"100%"} height={150} bgColor="$blue300"></Box>
+    useEffect(() => {
+        if (firstMount) {
+            setFirstMount(false);
+            return;
+        }
+        setIsSearching(true);
+        setQuerying(true);
+        const fetchRecipe = async () => {
+            if (search.length > 0) {
+                const { data, error } = await supabase.from("Recipes").select().ilike('name', "%" + search + "%");
+                setResults(data);
+            } else {
+                const { data, error } = await supabase.from("Recipes").select();
+                setResults(data);
+            }
+            setQuerying(false);
+        }
+        const delay = setTimeout(() => {
+            fetchRecipe();
+        }, 2000);
+
+        return () => clearTimeout(delay);
+
+    }, [search])
+
+    function HomeComponent() {
+        return (
+            <>
+                <VStack space="sm" reversed={false} style={styles.container}>
+                    {userDetails && <Heading size="3xl">Hi, {userDetails.first_name}!</Heading>}
+                    <Text>What would you like to eat today? (っ'ヮ'c)</Text>
+                    <Input width={"100%"} borderColor='#eb5834'>
+                        <InputSlot pl="$3">
+                            <InputIcon as={SearchIcon} />
+                        </InputSlot>
+                        <InputField placeholder="Search recipes" onChangeText={setsearch} />
+                    </Input>
+                    <View style={styles.recommendations}>
+                        <Text fontWeight={'$semibold'}>New Release!</Text>
+                        <Box width={"100%"} height={150} bgColor="$blue300"></Box>
+                    </View>
+                    <View style={styles.recommendations}>
+                        <Text fontWeight={'$semibold'}>Today's Recommendations</Text>
+                        <HStack>
+                            <Box width={"100%"} height={150} bgColor={"orange"}></Box>
+                        </HStack>
+                    </View>
+                    <View style={styles.recommendations}>
+                        <Text fontWeight={'$semibold'}>Upgrade Your Kitchenware!</Text>
+                        <HStack>
+                            <Box width={"100%"} height={150} bgColor={"orange"}></Box>
+                        </HStack>
+                    </View>
+                </VStack>
+            </>
+        );
+    }
+
+    function SkeletonComponent() {
+        return (
+            <>
+                <View margin={10}>
+                    <Skeleton count={1} height={510} />
                 </View>
-                <View style={styles.recommendations}>
-                    <Text fontWeight={'$semibold'}>Our Recommendations</Text>
-                    <HStack>
-                        <Box width={"100%"} height={150} bgColor={"orange"}></Box>
-                    </HStack>
-                </View>
-                <View style={styles.recommendations}>
-                    <Text fontWeight={'$semibold'}>Discover Delicacies</Text>
-                    <HStack>
-                        <Box width={"100%"} height={500} bgColor={"orange"}></Box>
-                    </HStack>
-                </View>
-            </VStack>
-            <View width={"100%"} marginVertical={12} paddingHorizontal={12} justifyContent='center' alignItems='center' textAlign='center'>
-                <Text textAlign='center'>You've reached the end of our recommendations! ( •̯́ ^ •̯̀)</Text>
+            </>
+        );
+    }
+
+    function RecipeComponent() {
+        return (
+            <>
+                <FlatList
+                    data={results}
+                    renderItem={({ item }) => <Recipe name={item.name} price={item.price} vendor={item.vendor} image={item.image} id={item.id} />}
+                    keyExtractor={item => item.id}
+                    marginTop={12}
+                    padding={12}
+                />
+            </>
+        )
+    }
+
+    function BackButton() {
+        return (
+            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 20, justifyContent: 'center', alignItems: 'center' }} pointerEvents='box-none'>
+                <Button
+                    size="sm"
+                    variant="solid"
+                    action="primary"
+                    onPress={() => setIsSearching(false)}
+                    borderRadius={30}
+                    bgColor='#FF6700'
+                >
+                    <AntDesign name="back" size={18} color="white" />
+                </Button>
             </View>
-        </ScrollView>
+        );
+    }
+
+    function ViewAllButton() {
+        return (
+            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 20, justifyContent: 'center', alignItems: 'center' }} pointerEvents='box-none'>
+                <Button
+                    size="sm"
+                    variant="solid"
+                    action="primary"
+                    bgColor='#FF6700'
+                    onPress={() => setIsSearching(true)}
+                    borderRadius={30}
+                >
+                    <ButtonText color='white'>Explore All!</ButtonText>
+                </Button>
+            </View>
+        );
+
+    }
+
+    function NotFoundComponent() {
+        return (
+            <>
+                <View marginTop={32} flex={1} height={"100%"} alignItems='center' justifyContent='center' textAlign='center'>
+                    <Text>No recipes matched your search ૮ ◞ ﻌ ◟ ა</Text>
+                </View>
+            </>
+        )
+    }
+
+    function SearchComponent() {
+        return (
+            <>
+                <VStack space="sm" reversed={false} style={styles.searchBar}>
+                    <Input width={"100%"} borderColor='#eb5834'>
+                        <InputSlot pl="$3">
+                            <InputIcon as={SearchIcon} />
+                        </InputSlot>
+                        <InputField placeholder="Search recipes" autoFocus={true} value={search} onChangeText={setsearch} />
+                    </Input>
+                </VStack>
+                {querying ? <SkeletonComponent /> : (!results || results.length == 0) ? <NotFoundComponent /> : <RecipeComponent />}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <ScrollView>
+                {(isSearching) ? <SearchComponent /> : <HomeComponent />}
+            </ScrollView>
+            {(isSearching) ? <BackButton /> : <ViewAllButton />}
+        </>
     );
 }
 
@@ -88,5 +244,19 @@ const styles = StyleSheet.create({
         borderColor: "#808080",
         borderStyle: 'dashed',
         padding: 8,
+    },
+    searchBar: {
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        backgroundColor: '#fff',
+        paddingVertical: 24,
+        paddingHorizontal: 32,
+        borderRadius: 12,
+    },
+    image: {
+        width: "100%",
+        height: 150,
+        backgroundColor: '#efefef',
+        borderRadius: 5,
     },
 });

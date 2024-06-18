@@ -16,11 +16,19 @@ export default function RootLayout() {
       <GluestackUIProvider config={config}>
         <LoadingProvider>
           <UserProvider>
-            <RootComponent/>
+            <RootComponent />
           </UserProvider>
         </LoadingProvider>
       </GluestackUIProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function SpinnerComponent() {
+  return (
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: '999' }} pointerEvents='box-none'>
+      <Spinner size='large' zIndex={999} />
+    </View>
   );
 }
 
@@ -39,7 +47,8 @@ function RootComponent() {
   }, []);
   return (
     <>
-      {loading && <Spinner size='large' position='absolute' top={"49%"} left={Platform.select({ web: '48.8%', default: '46%' }) } zIndex={999} />}
+      {/* {loading && <Spinner size='large' position='absolute' top={"49%"} left={Platform.select({ web: '47%', default: '46%' })} zIndex={999} />} */}
+      {loading && <SpinnerComponent />}
       <View style={styles.container}>
         <Slot />
       </View>
