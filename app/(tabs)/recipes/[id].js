@@ -252,7 +252,7 @@ export default function DetailsScreen() {
 
         console.log(isPurchased);
         fetchRecipe();
-    }, [setRecipe]);
+    }, [setRecipe, cartChanged, id]);
 
     function IngredientsList() {
         const ingredients = [];
@@ -402,7 +402,7 @@ export default function DetailsScreen() {
     }
 
     return (
-        recipe && <RootRecipeComponent />
+        !loading && recipe && <RootRecipeComponent />
     );
 }
 

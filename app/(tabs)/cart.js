@@ -33,6 +33,23 @@ export default function Tab() {
   const purchaseRef = React.useRef(null);
   const failedRef = React.useRef(null);
 
+  async function modify(id, type) {
+    setLoading(true);
+    const details = await supabase.from("CartDetails").select().eq('id', id);
+    if (type == 'add') {
+      const addResult = await supabase.from("CartDetails").update({quantity: details.data[0].quantity  + 1}).eq("id", id);
+    } else if (type == 'subtract') {
+        if (details.data[0].quantity == 1) {
+          remove(id);
+        } else {
+          const subtractResult = await supabase.from("CartDetails").update({quantity: details.data[0].quantity  - 1}).eq("id", id);
+        }
+    }
+
+    setCartChanged(true);
+    setLoading(false);
+  }
+
   async function remove(id) {
     setLoading(true);
     const erase = await supabase.from("CartDetails").delete().eq('id', id);
@@ -256,11 +273,11 @@ export default function Tab() {
               </Checkbox>
             </CheckboxGroup>
             <View flexDirection='row' justifyContent='space-between' gap={12} >
-              <Button size='xs' height={30} width={30} borderRadius={18}>
+              <Button size='xs' height={30} width={30} borderRadius={18} onPress={() => {modify(i.id, "add")}}>
                 <Ionicons name="add" size={14} color="white" />
               </Button>
               <Text>{i.quantity}</Text>
-              <Button size='xs' height={30} width={30} borderRadius={18} id={i.id} onPress={() => remove(this.props.id)}>
+              <Button size='xs' height={30} width={30} borderRadius={18} onPress={() => {modify(i.id, "subtract")}}>
                 <FontAwesome6 name="minus" size={12} color="white" />
               </Button>
             </View>

@@ -68,8 +68,8 @@ export default function Tab() {
   }, [search, cartChanged])
 
   const Recipe = ({ name, price, vendor, image, id }) => (
-    <Pressable style={{ flex: 1, bgColor: '#fff' }} onPress={() => { router.push("/recipes/" + id) }}>
-      <View bgColor={'#fff'} flex={1} maxWidth={"50%"} borderRadius={4} marginTop={12} justifyContent='center' textAlign='center'>
+    <Pressable style={{ flex: 1, bgColor: '#fff' }} onPress={() => { router.push("/recipes/" + id) }} padding={12}>
+      <View bgColor={'#fff'} flex={1} maxWidth={"100%"} borderRadius={4} justifyContent='center' textAlign='center'>
         <Image
           style={styles.image}
           source={getImageURL(image)}
@@ -77,8 +77,8 @@ export default function Tab() {
           contentFit="contain"
           transition={150}
         />
-        <Text textAlign='center'>{name}</Text>
-        <Text textAlign='center'  fontWeight={'$thin'}>By {vendor}</Text>
+        <Text textAlign='center'>{name.slice(0, 12)}...</Text>
+        <Text textAlign='center'  fontWeight={'$thin'}>By {vendor.slice(0, 12)}...</Text>
       </View>
     </Pressable>
   );
@@ -100,6 +100,7 @@ export default function Tab() {
           data={purchaseDetails}
           renderItem={({ item }) => <Recipe name={item.name} price={item.price} vendor={item.vendor} image={item.image} id={item.recipe_id} />}
           keyExtractor={item => item.id}
+          numColumns={2}
         />
       </>
     )
@@ -119,7 +120,7 @@ export default function Tab() {
     return (
       <>
         <VStack space="sm" reversed={false} style={styles.searchBar}>
-          <Input width={"100%"} borderColor='#eb5834'>
+          <Input width={"100%"} borderColor='#eb5834' marginBottom={12}>
             <InputSlot pl="$3">
               <InputIcon as={SearchIcon} />
             </InputSlot>
@@ -134,7 +135,7 @@ export default function Tab() {
   return (
     <>
       <ScrollView style={styles.container}>
-        <Heading size="xl" marginBottom={12}>Your Recipes: ( ∩´͈ ᐜ `͈∩)</Heading>
+        <Heading size="xl" marginBottom={12}>Your Recipes:</Heading>
         <SearchComponent />
       </ScrollView>
     </>
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 155,
+    height: 130,
     backgroundColor: '#efefef',
     borderRadius: 5,
   },

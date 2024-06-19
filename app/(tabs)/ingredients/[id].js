@@ -236,7 +236,7 @@ export default function DetailsScreen() {
 
         console.log(isPurchased);
         fetchIngredient();
-    }, [setIngredient, cartChanged]);
+    }, [setIngredient, cartChanged, id]);
 
     function PurchaseButtons() {
         return (
@@ -284,7 +284,7 @@ export default function DetailsScreen() {
     }
 
     return (
-        ingredient && <RootIngredientComponent />
+        !loading && ingredient && <RootIngredientComponent />
     );
 }
 

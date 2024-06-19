@@ -34,8 +34,8 @@ export default function Tab() {
     }
 
     const Recipe = ({ name, price, vendor, image, id }) => (
-        <Pressable stlye={{ flex: 1 }} onPress={() => { router.push("/recipes/" + id) }}>
-            <View flex={1} maxWidth={"50%"} padding={12} justifyContent='center' textAlign='center'>
+        <Pressable style={{ flex: 1 }} onPress={() => { router.push("/recipes/" + id) }}>
+            <View flex={1} maxWidth={"100%"} padding={12} justifyContent='center' textAlign='center'>
                 <Image
                     style={styles.image}
                     source={getImageURL(image)}
@@ -45,8 +45,8 @@ export default function Tab() {
 
                 />
                 <Text textAlign='center' fontWeight={'$bold'}>{price} FYC</Text>
-                <Text textAlign='center'>{name}</Text>
-                <Text textAlign='center' fontWeight={'$thin'}>By {vendor}</Text>
+                <Text textAlign='center' >{name.slice(0, 16)}...</Text>
+                <Text textAlign='center' fontWeight={'$thin'}>By {vendor.slice(0, 16)}...</Text>
             </View>
         </Pressable>
     );
@@ -124,7 +124,7 @@ export default function Tab() {
                         <HStack>
                             <Image
                                 style={{width: "100%", height: 150}}
-                                source={'../../assets/advertisement.jpg'}
+                                source={getImageURL('Advertisement.jpg')}
                                 placeholder={{ blurhash }}
                                 contentFit="contain"
                                 transition={150}
@@ -154,6 +154,7 @@ export default function Tab() {
                     data={results}
                     renderItem={({ item }) => <Recipe name={item.name} price={item.price} vendor={item.vendor} image={item.image} id={item.id} />}
                     keyExtractor={item => item.id}
+                    numColumns={2}
                 />
             </>
         )
