@@ -128,7 +128,7 @@ export default function Tab() {
       <>
         <Card size="md" variant="elevated" m="$1" maxWidth={330}>
           <Heading marginBottom={12} textAlign='center' fontWeight={'$thin'}>Quick Top-Up</Heading>
-          <View flex={1} flexDirection='row' gap={12} flexWrap='wrap' justifyContent='center'>
+          <View flexDirection='row' gap={12} flexWrap='wrap' justifyContent='center'>
             <Button action="positive" width={"45%"} height={60} onPress={() => preparePurchase(5, 49000)}>
               <FontAwesome6 name="money-bill" size={14} color="white" />
               <ButtonText marginLeft={10} marginBottom={1}>5 FYC Rp49.000</ButtonText>
@@ -162,14 +162,14 @@ export default function Tab() {
   return (
     <View style={styles.container}>
       <ModalComponent />
-      <Card size="md" variant="elevated" m="$1">
-        <HStack flex={1} columnGap={12} alignItems='center'>
-          <View flex={1}>
+      <Card size="md" variant="elevated" m="$1" width={"100%"}>
+        <HStack columnGap={12} alignItems='center'>
+          <View>
             <Heading>{userDetails.first_name + ' ' + userDetails.last_name}</Heading>
             <Text size='xs'>{"ID: " + userDetails.user_id}</Text>
             <Text size='xs'>Joined: {userDetails.created_at.slice(0, 10)}</Text>
             <Divider marginVertical={12} />
-            <View flex={1} justifyContent='center' alignItems='center' borderWidth={1} bgColor='white' padding={8} borderRadius={12} flexDirection='row'>
+            <View justifyContent='center' alignItems='center' borderWidth={1} bgColor='white' padding={8} borderRadius={12} flexDirection='row'>
               <FontAwesome6 name="money-bill" size={16} color="black" /><Text marginBottom={2} marginLeft={6}  fontWeight={'$bold'}>Balance: {userDetails.fyc} FYC</Text>
             </View>
           </View>

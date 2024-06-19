@@ -19,7 +19,7 @@ import { ToastDescription, ToastTitle } from '@gluestack-ui/themed';
 export default function DetailsScreen() {
     const toast = useToast();
     const { id } = useLocalSearchParams();
-    const [recipe, setRecipe] = useState(null);
+    const [ingredient, setIngredient] = useState(null);
     const [paymentModal, setPaymentModal] = useState(false);
     const [failedModal, setFailedModal] = useState(false);
     const { loading, setLoading } = useLoading();
@@ -33,18 +33,6 @@ export default function DetailsScreen() {
     const purchaseRef = React.useRef(null);
     const failedRef = React.useRef(null);
 
-    const Ingredient = ({ name, id }) => (
-        <>
-            <Text>{name}</Text>
-        </>
-    );
-
-    const Allergies = ({ name }) => (
-        <>
-            <Text>{name}</Text>
-        </>
-    );
-
     async function addCart() {
         if (isInCart) {
             return;
@@ -54,9 +42,9 @@ export default function DetailsScreen() {
         const cartDetails = await supabase
             .from('CartDetails')
             .insert([
-                { cart_header_id: cartHeader.data[0].id, recipe_id: recipe.id, quantity: 1 },
+                { cart_header_id: cartHeader.data[0].id, ingredients_id: ingredient.id, quantity: 1 },
             ]);
-        showToast("Recipe Added!", "Recipe added to cart successfully.", "success");
+        showToast("Ingredient Added!", "Ingredient added to cart successfully.", "success");
         setIsInCart(true);
         setCartChanged(true);
         setLoading(false);
@@ -64,34 +52,34 @@ export default function DetailsScreen() {
 
     async function purchase() {
         setLoading(true);
-        if (userDetails.fyc < recipe.price) {
+        if (userDetails.fyc < ingredient.price) {
             setFailedModal(true);
         } else {
             const { error } = await supabase
                 .from('Users')
-                .update({ fyc: userDetails.fyc - recipe.price })
+                .update({ fyc: userDetails.fyc - ingredient.price })
                 .eq('user_id', user.id);
             const { data } = await supabase.from("Users").select().eq("user_id", user.id);
             const purchasedHeader = await supabase.from("PurchasedHeader").select().eq("user_id", user.id);
             const purchaseDetails = await supabase
                 .from('PurchasedDetails')
                 .insert([
-                    { purchased_header_id: purchasedHeader.data[0].id, recipe_id: recipe.id, quantity: 1, status: "Complete" },
+                    { purchased_header_id: purchasedHeader.data[0].id, ingredient_id: ingredient.id, quantity: 1, status: "Processing" },
                 ]);
 
             const cartHeaderResult = await supabase.from("CartHeader").select().eq("user_id", user.id);
-            const cartDetails = await supabase.from("CartDetails").select().eq("cart_header_id", cartHeaderResult.data[0].id).eq('recipe_id', recipe.id);
+            const cartDetails = await supabase.from("CartDetails").select().eq("cart_header_id", cartHeaderResult.data[0].id).eq('ingredients_id', ingredient.id);
 
             if (cartDetails) {
                 const response = await supabase
                     .from('CartDetails')
                     .delete()
                     .eq("cart_header_id", cartHeaderResult.data[0].id)
-                    .eq('recipe_id', recipe.id);
+                    .eq('ingredient_id', ingredient.id);
                 setCartChanged(true);
             }
 
-            showToast("Recipe Obtained!", "You have successfully purchased this recipe. Foo-Yoh!", "success");
+            showToast("Ingredient Obtained!", "You have successfully purchased this ingredient. Please wait until delivery comes!", "success");
             setUserDetails(data[0]);
             setIsPurchased(true);
         }
@@ -191,7 +179,7 @@ export default function DetailsScreen() {
                     </ModalHeader>
                     <ModalBody>
                         <Text>
-                            Are you sure you want to pay {recipe.price} FYC to obtain this item?
+                            Are you sure you want to pay {ingredient.price} FYC to obtain this item?
                         </Text>
                     </ModalBody>
                     <ModalFooter>
@@ -233,46 +221,22 @@ export default function DetailsScreen() {
     }
 
     useEffect(() => {
-        const fetchRecipe = async () => {
+        const fetchIngredient = async () => {
             setLoading(true);
-            const recipeResult = await supabase.from("Recipes").select().eq("id", id);
-            setRecipe(recipeResult.data[0]);
-            setImageURL(getImageURL(recipeResult.data[0].image));
-
-            const purchasedHeader = await supabase.from("PurchasedHeader").select().eq("user_id", user.id);
-            const purchasedDetails = await supabase.from("PurchasedDetails").select('*', { count: 'exact', head: true }).eq("purchased_header_id", purchasedHeader.data[0].id).eq("recipe_id", recipeResult.data[0].id);
+            const ingredientResult = await supabase.from("Ingredients").select().eq("id", id);
+            setIngredient(ingredientResult.data[0]);
+            setImageURL(getImageURL(ingredientResult.data[0].image));
 
             const cartHeader = await supabase.from("CartHeader").select().eq("user_id", user.id);
-            const cartDetails = await supabase.from("CartDetails").select('*', { count: 'exact', head: true }).eq("cart_header_id", cartHeader.data[0].id).eq("recipe_id", recipeResult.data[0].id);
+            const cartDetails = await supabase.from("CartDetails").select('*', { count: 'exact', head: true }).eq("cart_header_id", cartHeader.data[0].id).eq("ingredients_id", ingredientResult.data[0].id);
 
-            setIsPurchased(purchasedDetails.count ? true : false);
             setIsInCart(cartDetails.count ? true : false);
             setLoading(false);
         }
 
         console.log(isPurchased);
-        fetchRecipe();
-    }, [setRecipe]);
-
-    function IngredientsList() {
-        const ingredients = [];
-        for (let i of recipe.ingredients) {
-            ingredients.push(
-                <Text key={"ingredient" + i.id}>{i.name}</Text>
-            )
-        }
-        return ingredients;
-    }
-
-    function AllergiesList() {
-        const allergies = [];
-        for (let i of recipe.allergies) {
-            allergies.push(
-                <Text key={"allergy" + i.id}>{i.name}</Text>
-            )
-        }
-        return allergies;
-    }
+        fetchIngredient();
+    }, [setIngredient, cartChanged]);
 
     function PurchaseButtons() {
         return (
@@ -297,59 +261,12 @@ export default function DetailsScreen() {
         );
     }
 
-    function PleasePurchaseComponent() {
-        return (
-            <View>
-                <Text>Unfortunately, this recipe is not free... please purchase to unlock its contents!</Text>
-            </View>
-        )
-    }
-
-    function RecipeDetailComponent() {
-        const steps = [];
-        for (let i of recipe.steps) {
-            steps.push(
-                <Card width={"100%"} key={"step" + i.step} size="lg" variant={"elevated"} margin={'$1'}>
-                    <Text bold={true}>Step {i.step}</Text>
-                    <Text>{i.description}</Text>
-                </Card>
-            )
-        }
-        return steps;
-    }
-
-    function AlreadyPurchasedButtons() {
-        return (
-            <View width={"100%"} position={"absolute"} flexDirection='row' gap={12} bottom={0} justifyContent='center' alignItems='center' marginBottom={18}>
-                <Button
-                    size="sm"
-                    variant="solid"
-                    action="primary"
-                    onPress={() => router.replace("/home")}
-                    borderRadius={30}
-                    bgColor='white'
-                >
-                    <AntDesign name="back" size={18} color="black" />
-                </Button>
-            </View>
-        );
-    }
-
-    function BannerComponent() {
-        return (
-            <View position='absolute' width={200} borderTopLeftRadius={4} borderBottomRightRadius={8} top={36} zIndex={99} bgColor='orange'>
-                <Text bold={true} color='black' marginLeft={8}>Added to your recipes</Text>
-            </View>
-        );
-    }
-
-    function RootRecipeComponent() {
+    function RootIngredientComponent() {
         return (
             <>
                 <FailedModalComponent />
                 <PurchaseModalComponent />
                 <ScrollView contentContainerStyle={styles.container}>
-                    {isPurchased && <BannerComponent />}
                     <Image
                         style={styles.image}
                         source={imageURL}
@@ -357,52 +274,17 @@ export default function DetailsScreen() {
                         contentFit="contain"
                         transition={15}
                     />
-                    <Heading marginTop={18}>{recipe.name} <Text fontWeight={'$thin'}>by {recipe.vendor}</Text></Heading>
-                    <Text fontWeight={'$light'} textAlign='justify'>{recipe.description}</Text>
+                    <Heading marginTop={18}>{ingredient.name} <Text fontWeight={'$thin'}> {ingredient.unit}</Text></Heading>
+                    <Text fontWeight={'$light'} textAlign='justify'>{ingredient.description}</Text>
                     <Divider my={"$0.5"} marginVertical={18} />
-                    <View flex={1} rowGap={12} flexWrap='wrap' width={"100%"} flexDirection='row'>
-                        <View width={"40%"}>
-                            <Text bold={true}>Difficulty:</Text>
-                        </View>
-                        <View width={"60%"}>
-                            <Text>{recipe.difficulty}</Text>
-                        </View>
-                        <View width={"40%"}>
-                            <Text bold={true}>Time Needed:</Text>
-                        </View>
-                        <View width={"60%"}>
-                            <Text>{recipe.time_needed}</Text>
-                        </View>
-                        <View width={"40%"}>
-                            <Text bold={true}>Total Calories:</Text>
-                        </View>
-                        <View width={"60%"}>
-                            <Text>{recipe.calories}cal</Text>
-                        </View>
-                        <View width={"40%"}>
-                            <Text bold={true}>Ingredients:</Text>
-                        </View>
-                        <View width={"60%"}>
-                            <IngredientsList />
-                        </View>
-                        <View width={"40%"}>
-                            <Text bold={true}>Allergies:</Text>
-                        </View>
-                        <View width={"60%"}>
-                            <AllergiesList />
-                        </View>
-                    </View>
-                    <Divider my={"$0.5"} marginVertical={18} />
-                    {!isPurchased ? <PleasePurchaseComponent /> : <RecipeDetailComponent />}
                 </ScrollView>
-                {!isPurchased ? <PurchaseButtons /> : <AlreadyPurchasedButtons />}
-
+                <PurchaseButtons />
             </>
         )
     }
 
     return (
-        recipe && <RootRecipeComponent />
+        ingredient && <RootIngredientComponent />
     );
 }
 

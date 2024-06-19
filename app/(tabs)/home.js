@@ -34,32 +34,33 @@ export default function Tab() {
     }
 
     const Recipe = ({ name, price, vendor, image, id }) => (
-        <Pressable stlye={{ flex: 1, bgColor: '#fff' }} onPress={() => { router.push("/recipes/" + id) }}>
-            <View bgColor={'#fff'} flex={1} maxWidth={"50%"} borderRadius={4} padding={12} justifyContent='center' textAlign='center'>
+        <Pressable stlye={{ flex: 1 }} onPress={() => { router.push("/recipes/" + id) }}>
+            <View flex={1} maxWidth={"50%"} padding={12} justifyContent='center' textAlign='center'>
                 <Image
                     style={styles.image}
                     source={getImageURL(image)}
                     placeholder={{ blurhash }}
                     contentFit="contain"
                     transition={150}
+
                 />
-                <Text>{name}</Text>
-                <Text fontWeight={'$bold'}>{price} FYC</Text>
-                <Text fontWeight={'$thin'}>By {vendor}</Text>
+                <Text textAlign='center' fontWeight={'$bold'}>{price} FYC</Text>
+                <Text textAlign='center'>{name}</Text>
+                <Text textAlign='center' fontWeight={'$thin'}>By {vendor}</Text>
             </View>
         </Pressable>
     );
 
     const fetchRecipe = async () => {
-            if (search.length > 0) {
-                const { data, error } = await supabase.from("Recipes").select().ilike('name', "%" + search + "%");
-                setResults(data);
-            } else {
-                const { data, error } = await supabase.from("Recipes").select();
-                setResults(data);
-            }
-            setQuerying(false);
+        if (search.length > 0) {
+            const { data, error } = await supabase.from("Recipes").select().ilike('name', "%" + search + "%");
+            setResults(data);
+        } else {
+            const { data, error } = await supabase.from("Recipes").select();
+            setResults(data);
         }
+        setQuerying(false);
+    }
 
     useEffect(() => {
         setLoading(true);
@@ -71,10 +72,9 @@ export default function Tab() {
                     setUser(user);
                     setUserDetails(data[0]);
                 } catch (error) {
-                    console.error('Error fetching session:', error.message);
-                } finally {
-                    setLoading(false);
-                }
+                    router.replace('/login');
+                } 
+                
             }
             setLoading(false);
         };
@@ -122,7 +122,14 @@ export default function Tab() {
                     <View style={styles.recommendations}>
                         <Text fontWeight={'$semibold'}>Upgrade Your Kitchenware!</Text>
                         <HStack>
-                            <Box width={"100%"} height={150} bgColor={"orange"}></Box>
+                            <Image
+                                style={{width: "100%", height: 150}}
+                                source={'../../assets/advertisement.jpg'}
+                                placeholder={{ blurhash }}
+                                contentFit="contain"
+                                transition={150}
+
+                            />
                         </HStack>
                     </View>
                 </VStack>
@@ -147,8 +154,6 @@ export default function Tab() {
                     data={results}
                     renderItem={({ item }) => <Recipe name={item.name} price={item.price} vendor={item.vendor} image={item.image} id={item.id} />}
                     keyExtractor={item => item.id}
-                    marginTop={12}
-                    padding={12}
                 />
             </>
         )

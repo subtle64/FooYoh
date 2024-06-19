@@ -47,6 +47,12 @@ export default function TabLayout() {
                     href: null,
                 }}
             />
+            <Tabs.Screen
+                name="ingredients/[id]"
+                options={{
+                    href: null,
+                }}
+            />
         </Tabs>
         // </View>
     );
